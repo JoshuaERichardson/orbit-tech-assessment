@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Order Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Add New Order</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('add_order') }}" method="post">
+                    <div class="mb-3">
+                        <label for="order_id" class="form-label">Order ID</label>
+                        <input type="text" class="form-control" id="order_id" name="order_id" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="order_details" class="form-label">Order Details</label>
+                        <textarea class="form-control" id="order_details" name="order_details" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="order_status" class="form-label">Order Status</label>
+                        <select class="form-select" id="order_status" name="order_status" required>
+                            <option value="">Select Status</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Add Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Order List</h5>
+            </div>
+            <div class="card-body">
+                {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td><strong>{{ order.order_id }}</strong></td>
+                                <td>{{ order.order_details }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if order.order_status == 'Delivered' else 'warning' if order.order_status == 'Processing' else 'info' if order.order_status == 'Shipped' else 'secondary' }}">
+                                        {{ order.order_status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No orders found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
