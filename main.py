@@ -1,76 +1,44 @@
-import json
-from flask import Flask, render_template, request, redirect, url_for, flash
 import functions_framework
+from flask import request, jsonify
+from google.cloud import bigquery
+import datetime
+import os
 
-# Sample orders data (in a real app, this would be in a database)
-ORDERS = [
-    {
-        'order_id': 'ORD-001',
-        'order_details': 'Wireless Headphones - Qty: 2',
-        'order_status': 'Shipped'
-    },
-    {
-        'order_id': 'ORD-002', 
-        'order_details': 'Smartphone - Qty: 1',
-        'order_status': 'Processing'
-    },
-    {
-        'order_id': 'ORD-003',
-        'order_details': 'Running Shoes - Qty: 1',
-        'order_status': 'Delivered'
-    }
-]
+# Set up BigQuery client
+client = bigquery.Client()
+dataset_id = 'orbit_ecommerce'
+table_id = 'example_orders'
+view_id = 'latest_orders'
 
 @functions_framework.http
-def order_management(request):
-    """HTTP Cloud Function for order management"""
-    # Set CORS headers for the preflight request
-    if request.method == 'OPTIONS':
-        # Allows GET requests from any origin with the Content-Type
-        # header and caches preflight response for an 3600s
-        headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '3600'
-        }
-        return ('', 204, headers)
+def handle_order(req):
+    if req.method == 'POST':
+        # Insert orders into BigQuery
+        data = req.get_json()
+        if not isinstance(data, list):
+            return "Input data should be a JSON array", 400
+        rows_to_insert = []
+        for order in data:
+            # Add validation here as needed
+            rows_to_insert.append({
+                'order_id': order['order_id'],
+                'order_date': order['order_date'],
+                'order_details': order['order_details'],
+                'order_status': order['order_status'],
+                'created_at': bigquery.Timestamp(datetime.datetime.utcnow())
+            })
+        table_ref = f"{client.project}.{dataset_id}.{table_id}"
+        errors = client.insert_rows_json(table_ref, rows_to_insert)
+        if errors:
+            return f"Errors: {errors}", 400
+        return "Orders inserted successfully", 200
 
-    # Set CORS headers for the main request
-    headers = {
-        'Access-Control-Allow-Origin': '*'
-    }
+    elif req.method == 'GET':
+        # Get latest orders
+        query = f"SELECT latest_order.* FROM `{client.project}.{dataset_id}.{view_id}`"
+        results = client.query(query)
+        latest_orders = [dict(row) for row in results]
+        return jsonify(latest_orders)
 
-    if request.method == 'GET':
-        # Return orders list as JSON
-        return (json.dumps(ORDERS), 200, headers)
-    
-    elif request.method == 'POST':
-        try:
-            request_json = request.get_json()
-            
-            if not request_json:
-                return (json.dumps({'error': 'No JSON data provided'}), 400, headers)
-            
-            order_id = request_json.get('order_id')
-            order_details = request_json.get('order_details')
-            order_status = request_json.get('order_status')
-            
-            if not all([order_id, order_details, order_status]):
-                return (json.dumps({'error': 'Missing required fields'}), 400, headers)
-            
-            # Add new order
-            new_order = {
-                'order_id': order_id,
-                'order_details': order_details,
-                'order_status': order_status
-            }
-            ORDERS.append(new_order)
-            
-            return (json.dumps({'message': 'Order added successfully', 'order': new_order}), 201, headers)
-            
-        except Exception as e:
-            return (json.dumps({'error': str(e)}), 500, headers)
-    
     else:
-        return (json.dumps({'error': 'Method not allowed'}), 405, headers) 
+        return "Method Not Allowed", 405
