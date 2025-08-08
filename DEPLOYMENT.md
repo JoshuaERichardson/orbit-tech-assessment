@@ -14,7 +14,7 @@ gcloud functions deploy order-management \
   --runtime python311 \
   --trigger-http \
   --allow-unauthenticated \
-  --entry-point order_management
+  --entry-point handle_order
 ```
 
 ### Option 2: Deploy via Google Cloud Console
@@ -23,7 +23,7 @@ gcloud functions deploy order-management \
 3. Choose "HTTP" trigger
 4. Set runtime to "Python 3.11"
 5. Upload your `main.py` and `requirements.txt` files
-6. Set entry point to `order_management`
+6. Set entry point to `handle_order`
 
 ## Testing Your Function
 
