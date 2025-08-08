@@ -25,7 +25,7 @@ def handle_order(req):
                 'order_date': order['order_date'],
                 'order_details': order['order_details'],
                 'order_status': order['order_status'],
-                'created_at': bigquery.Timestamp(datetime.datetime.utcnow())
+                'created_at': datetime.datetime.now(datetime.timezone.utc)
             })
         table_ref = f"{client.project}.{dataset_id}.{table_id}"
         errors = client.insert_rows_json(table_ref, rows_to_insert)
