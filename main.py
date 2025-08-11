@@ -35,11 +35,17 @@ def handle_order(req):
         return "Orders inserted successfully", 200
 
     elif req.method == 'GET':
-        # Get latest orders
-        query = f"SELECT latest_order.* FROM `{client.project}.{dataset_id}.{view_id}`"
-        results = client.query(query)
-        latest_orders = [dict(row) for row in results]
-        return jsonify(latest_orders)
+        # Get latest orders from the existing view
+        query = f"SELECT * FROM `{client.project}.{dataset_id}.{view_id}` ORDER BY order_id"
+        
+        try:
+            results = client.query(query)
+            latest_orders = [dict(row) for row in results]
+            return jsonify(latest_orders)
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error in GET request: {str(e)}")
+            return jsonify({"error": f"Database query failed: {str(e)}"}), 500
 
     else:
         return "Method Not Allowed", 405
