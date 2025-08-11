@@ -1,5 +1,0 @@
-[
-  {"order_id": "TEST-001", "order_date": "2024-12-01T10:00:00Z", "order_details": "Test Product 1", "order_status": "Processing"},
-  {"order_id": "TEST-002", "order_date": "2024-12-01T10:15:00Z", "order_details": "Test Product 2", "order_status": "Shipped"},
-  {"order_id": "TEST-003", "order_date": "2024-12-01T10:30:00Z", "order_details": "Test Product 3", "order_status": "Delivered"}
-]

@@ -1,163 +1,137 @@
-# Simple Order Management System
+# Orbit E-commerce Cloud Function
 
-A simple Flask application for managing orders with basic order tracking functionality.
+A Google Cloud Function that manages e-commerce orders with BigQuery integration. The function provides both POST (insert orders) and GET (retrieve latest order status) endpoints.
 
 ## Features
 
-- **Add Orders**: Simple form to add new orders with order ID, details, and status
-- **Order List**: Display all orders in a clean table format
-- **Status Tracking**: Track order status (Pending, Processing, Shipped, Delivered, Cancelled)
-- **Responsive Design**: Clean, mobile-friendly interface using Bootstrap
+- **POST**: Insert multiple orders into BigQuery with automatic timestamping
+- **GET**: Retrieve the latest status for each order ID from a pre-configured BigQuery view
+- **BigQuery Integration**: Seamlessly works with Google Cloud BigQuery
+- **Authentication**: Uses Google Cloud IAM for secure access
 
-## Form Fields
+## Prerequisites
 
-The application includes a simple form with three fields:
-- **Order ID**: Unique identifier for the order
-- **Order Details**: Description of the order contents
-- **Order Status**: Current status of the order
+- Google Cloud Platform account
+- Google Cloud CLI (`gcloud`) installed and configured
+- Python 3.7+ (for local development)
+- Access to BigQuery with the following resources:
+  - Dataset: `orbit_ecommerce`
+  - Table: `example_orders`
+  - View: `latest_orders`
 
-## Installation
 
-1. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+https://console.cloud.google.com/bigquery?ws=!1m5!1m4!4m3!1sorbit-example!2sorbit_ecommerce!3sexample_orders
+## Deployment
 
-2. **Run the application**:
-   ```bash
-   python app.py
-   ```
+### 1. Install Dependencies
 
-3. **Open your browser** and navigate to:
-   ```
-   http://localhost:5000
-   ```
-
-## Project Structure
-
-```
-tech_assessment/
-├── app.py                 # Main Flask application
-├── requirements.txt       # Python dependencies
-├── README.md             # This file
-└── templates/            # HTML templates
-    ├── base.html         # Base template with navigation
-    └── home.html         # Order form and list page
-```
-
-## Usage
-
-- Fill out the form on the left side to add new orders
-- View existing orders in the table on the right side
-- Orders are stored in memory (resets when server restarts)
-
-## Technical Details
-
-- **Framework**: Flask 2.3.3
-- **Frontend**: Bootstrap 5
-- **Data Storage**: In-memory list (no database)
-- **Responsive**: Mobile-friendly design
-
-## Development
-
-To run in development mode with auto-reload:
 ```bash
-python app.py
+pip install -r requirements.txt
 ```
 
-The application will run on `http://localhost:5000` with debug mode enabled. 
+(note: best to do within a venv)
 
+### 2. Deploy to Google Cloud Functions
 
+```bash
+gcloud functions deploy orbit-example \
+  --runtime python39 \
+  --trigger-http \
+  --allow-unauthenticated \
+  --region us-west1 \
+  --source . \
+  --entry-point handle_order
+```
 
-SELF NOTES
-curl -X POST https://us-central1-orbit-example.cloudfunctions.net/handle_order -H "Content-Type: application/json" -d @orders.json
+**Note**: Replace `orbit-example` with your preferred function name and adjust the region as needed.
 
-curl -X POST "https://handle-order-989104885337.us-central1.run.app" \
--H "Content-Type: application/json" \
--d '[
-    {
-      "order_id": "12345",
-      "order_date": "2024-05-01T10:00:00Z",
-      "order_details": "Item A, Item B",
-      "order_status": "Shipped"
-    },
-    {
-      "order_id": "12346",
-      "order_date": "2024-05-01T11:00:00Z",
-      "order_details": "Item C, Item D",
-      "order_status": "Processing"
-    }
-  ]'
+### 3. Set Environment Variables (if needed)
 
-  curl -X POST "https://orbit-tech-assessment-989104885337.us-west1.run.app" \
--H "Authorization: bearer $(gcloud auth print-identity-token)" \
--H "Content-Type: application/json" \
--d '[
-  {"order_id": "ORD-001", "order_date": "2025-08-01T10:00:00Z", "order_details": "Leaky Shoes", "order_status": "Processing"},
-  {"order_id": "ORD-002", "order_date": "2025-08-01T10:15:00Z", "order_details": "Moist Mittens", "order_status": "Shipped"},
-  {"order_id": "ORD-003", "order_date": "2025-08-01T10:30:00Z", "order_details": "Soggy Socks", "order_status": "Delivered"},
-  {"order_id": "ORD-004", "order_date": "2025-08-01T10:45:00Z", "order_details": "Humid Hoodie", "order_status": "Processing"},
-  {"order_id": "ORD-005", "order_date": "2025-08-01T11:00:00Z", "order_details": "Sopping Sneakers", "order_status": "Shipped"},
-  {"order_id": "ORD-006", "order_date": "2025-08-01T11:15:00Z", "order_details": "Waterlogged Wallet", "order_status": "Delivered"},
-  {"order_id": "ORD-007", "order_date": "2025-08-01T11:30:00Z", "order_details": "Pre-Rained Raincoat", "order_status": "Processing"},
-  {"order_id": "ORD-008", "order_date": "2025-08-01T11:45:00Z", "order_details": "Dewy Denim", "order_status": "Shipped"},
-  {"order_id": "ORD-009", "order_date": "2025-08-01T12:00:00Z", "order_details": "Flooded Fleece", "order_status": "Delivered"},
-  {"order_id": "ORD-010", "order_date": "2025-08-01T12:15:00Z", "order_details": "Sorta Short Shorts", "order_status": "Processing"},
-  {"order_id": "ORD-011", "order_date": "2025-08-01T12:30:00Z", "order_details": "Leaky Shoes", "order_status": "Shipped"},
-  {"order_id": "ORD-012", "order_date": "2025-08-01T12:45:00Z", "order_details": "Moist Mittens", "order_status": "Delivered"},
-  {"order_id": "ORD-013", "order_date": "2025-08-01T13:00:00Z", "order_details": "Soggy Socks", "order_status": "Processing"},
-  {"order_id": "ORD-014", "order_date": "2025-08-01T13:15:00Z", "order_details": "Humid Hoodie", "order_status": "Shipped"},
-  {"order_id": "ORD-015", "order_date": "2025-08-01T13:30:00Z", "order_details": "Sopping Sneakers", "order_status": "Delivered"},
-  {"order_id": "ORD-016", "order_date": "2025-08-01T13:45:00Z", "order_details": "Waterlogged Wallet", "order_status": "Processing"},
-  {"order_id": "ORD-017", "order_date": "2025-08-01T14:00:00Z", "order_details": "Pre-Rained Raincoat", "order_status": "Shipped"},
-  {"order_id": "ORD-018", "order_date": "2025-08-01T14:15:00Z", "order_details": "Dewy Denim", "order_status": "Delivered"},
-  {"order_id": "ORD-019", "order_date": "2025-08-01T14:30:00Z", "order_details": "Flooded Fleece", "order_status": "Processing"},
-  {"order_id": "ORD-020", "order_date": "2025-08-01T14:45:00Z", "order_details": "Sorta Short Shorts", "order_status": "Shipped"},
-  {"order_id": "ORD-021", "order_date": "2025-08-01T15:00:00Z", "order_details": "Leaky Shoes", "order_status": "Delivered"},
-  {"order_id": "ORD-022", "order_date": "2025-08-01T15:15:00Z", "order_details": "Moist Mittens", "order_status": "Processing"},
-  {"order_id": "ORD-023", "order_date": "2025-08-01T15:30:00Z", "order_details": "Soggy Socks", "order_status": "Shipped"},
-  {"order_id": "ORD-024", "order_date": "2025-08-01T15:45:00Z", "order_details": "Humid Hoodie", "order_status": "Delivered"},
-  {"order_id": "ORD-025", "order_date": "2025-08-01T16:00:00Z", "order_details": "Sopping Sneakers", "order_status": "Processing"},
-  {"order_id": "ORD-026", "order_date": "2025-08-01T16:15:00Z", "order_details": "Waterlogged Wallet", "order_status": "Shipped"},
-  {"order_id": "ORD-027", "order_date": "2025-08-01T16:30:00Z", "order_details": "Pre-Rained Raincoat", "order_status": "Delivered"},
-  {"order_id": "ORD-028", "order_date": "2025-08-01T16:45:00Z", "order_details": "Dewy Denim", "order_status": "Processing"},
-  {"order_id": "ORD-029", "order_date": "2025-08-01T17:00:00Z", "order_details": "Flooded Fleece", "order_status": "Shipped"},
-  {"order_id": "ORD-030", "order_date": "2025-08-01T17:15:00Z", "order_details": "Sorta Short Shorts", "order_status": "Delivered"},
-  {"order_id": "ORD-031", "order_date": "2025-08-01T17:30:00Z", "order_details": "Leaky Shoes", "order_status": "Processing"},
-  {"order_id": "ORD-032", "order_date": "2025-08-01T17:45:00Z", "order_details": "Moist Mittens", "order_status": "Shipped"},
-  {"order_id": "ORD-033", "order_date": "2025-08-01T18:00:00Z", "order_details": "Soggy Socks", "order_status": "Delivered"},
-  {"order_id": "ORD-034", "order_date": "2025-08-01T18:15:00Z", "order_details": "Humid Hoodie", "order_status": "Processing"},
-  {"order_id": "ORD-035", "order_date": "2025-08-01T18:30:00Z", "order_details": "Sopping Sneakers", "order_status": "Shipped"},
-  {"order_id": "ORD-036", "order_date": "2025-08-01T18:45:00Z", "order_details": "Waterlogged Wallet", "order_status": "Delivered"},
-  {"order_id": "ORD-037", "order_date": "2025-08-01T19:00:00Z", "order_details": "Pre-Rained Raincoat", "order_status": "Processing"},
-  {"order_id": "ORD-038", "order_date": "2025-08-01T19:15:00Z", "order_details": "Dewy Denim", "order_status": "Shipped"},
-  {"order_id": "ORD-039", "order_date": "2025-08-01T19:30:00Z", "order_details": "Flooded Fleece", "order_status": "Delivered"},
-  {"order_id": "ORD-040", "order_date": "2025-08-01T19:45:00Z", "order_details": "Sorta Short Shorts", "order_status": "Processing"},
-  {"order_id": "ORD-041", "order_date": "2025-08-01T20:00:00Z", "order_details": "Leaky Shoes", "order_status": "Shipped"},
-  {"order_id": "ORD-042", "order_date": "2025-08-01T20:15:00Z", "order_details": "Moist Mittens", "order_status": "Delivered"},
-  {"order_id": "ORD-043", "order_date": "2025-08-01T20:30:00Z", "order_details": "Soggy Socks", "order_status": "Processing"},
-  {"order_id": "ORD-044", "order_date": "2025-08-01T20:45:00Z", "order_details": "Humid Hoodie", "order_status": "Shipped"},
-  {"order_id": "ORD-045", "order_date": "2025-08-01T21:00:00Z", "order_details": "Sopping Sneakers", "order_status": "Delivered"},
-  {"order_id": "ORD-046", "order_date": "2025-08-01T21:15:00Z", "order_details": "Waterlogged Wallet", "order_status": "Processing"},
-  {"order_id": "ORD-047", "order_date": "2025-08-01T21:30:00Z", "order_details": "Pre-Rained Raincoat", "order_status": "Shipped"},
-  {"order_id": "ORD-048", "order_date": "2025-08-01T21:45:00Z", "order_details": "Dewy Denim", "order_status": "Delivered"},
-  {"order_id": "ORD-049", "order_date": "2025-08-01T22:00:00Z", "order_details": "Flooded Fleece", "order_status": "Processing"},
-  {"order_id": "ORD-050", "order_date": "2025-08-01T22:15:00Z", "order_details": "Sorta Short Shorts", "order_status": "Shipped"}
+```bash
+gcloud functions deploy orbit-example \
+  --set-env-vars DATASET_ID=orbit_ecommerce,TABLE_ID=example_orders,VIEW_ID=latest_orders
+```
+
+## Testing
+
+### 1. Test with Sample Data
+
+First, test with a small dataset to ensure everything works:
+
+```bash
+# Create a test file
+echo '[{"order_id": "TEST-001", "order_date": "2024-12-01T10:00:00Z", "order_details": "Test Product", "order_status": "Processing"}]' > test_orders.json
+
+# POST test data
+curl -X POST "https://orbit-example-989104885337.us-west1.run.app" \
+  -H "Authorization: bearer $(gcloud auth print-identity-token)" \
+  -H "Content-Type: application/json" \
+  -d @test_orders.json
+```
+
+### 2. Test GET Endpoint
+
+```bash
+curl -X GET "https://orbit-example-989104885337.us-west1.run.app" \
+  -H "Authorization: bearer $(gcloud auth print-identity-token)" \
+  -H "Content-Type: application/json"
+```
+
+### 3. Load All Orders
+
+Once testing is successful, load all orders:
+
+```bash
+curl -X POST "https://orbit-example-989104885337.us-west1.run.app" \
+  -H "Authorization: bearer $(gcloud auth print-identity-token)" \
+  -H "Content-Type: application/json" \
+  -d @orders/orders_update.json
+```
+
+(note: ensure to be cd'd into project root directory)
+
+## API Endpoints
+
+### POST / (Insert Orders)
+
+**Purpose**: Insert new orders into BigQuery
+
+**Request Body**: JSON array of order objects
+```json
+[
+  {
+    "order_id": "ORD-001",
+    "order_date": "2024-12-01T10:00:00Z",
+    "order_details": "Product Name",
+    "order_status": "Processing"
+  }
 ]
-  '
+```
 
+**Response**: 
+- `200`: Orders inserted successfully
+- `400`: Invalid input data or insertion errors
 
-  curl -X POST "https://orbit-example-989104885337.us-west1.run.app" \
--H "Authorization: bearer $(gcloud auth print-identity-token)" \
--H "Content-Type: application/json" \
--d '[{"order_id": "ORD-001", "order_date": "2025-08-01T10:00:00Z", "order_details": "Leaky Shoes", "order_status": "Delivered"},
-  {"order_id": "ORD-002", "order_date": "2025-09-01T10:15:00Z", "order_details": "Moist Mittens", "order_status": "Delivered"},
-  {"order_id": "ORD-003", "order_date": "2025-09-01T10:30:00Z", "order_details": "Soggy Socks", "order_status": "Delivered"},
-  {"order_id": "ORD-004", "order_date": "2025-09-01T10:45:00Z", "order_details": "Humid Hoodie", "order_status": "Delivered"},
-  {"order_id": "ORD-005", "order_date": "2025-09-01T11:00:00Z", "order_details": "Sopping Sneakers", "order_status": "Delivered"},
-  {"order_id": "ORD-006", "order_date": "2025-09-01T11:15:00Z", "order_details": "Waterlogged Wallet", "order_status": "Delivered"},
-  {"order_id": "ORD-007", "order_date": "2025-08-01T11:30:00Z", "order_details": "Pre-Rained Raincoat", "order_status": "Delivered"},
-  {"order_id": "ORD-008", "order_date": "2025-08-01T11:45:00Z", "order_details": "Dewy Denim", "order_status": "Delivered"},
-  {"order_id": "ORD-009", "order_date": "2025-08-01T12:00:00Z", "order_details": "Flooded Fleece", "order_status": "Delivered"},
-  {"order_id": "ORD-010", "order_date": "2025-08-01T12:15:00Z", "order_details": "Sorta Short Shorts", "order_status": "Delivered"}
-]'
+### GET / (Retrieve Latest Orders)
+
+**Purpose**: Get the latest status for each order ID
+
+**Response**: 
+- `200`: JSON array of latest order statuses
+- `500`: Database query errors
+
+## BigQuery Schema
+
+### Table: `example_orders`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `order_id` | STRING | Unique order identifier |
+| `order_date` | TIMESTAMP | When the order was placed |
+| `order_details` | STRING | Product description |
+| `order_status` | STRING | Order status (Processing/Shipped/Delivered) |
+| `created_at` | TIMESTAMP | When the record was inserted |
+
+### View: `latest_orders`
+
+This view should contain the most recent entry for each `order_id` based on `created_at`.
